@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import './App.css';
-
+// ADD COMMENTS
 
 const ROWS = 6;
 const COLS = 7;
 
-// Utility function to darken the hex color
 const darkenColor = (hex, amount) => {
   let color = hex.replace(/^#/, '');
 
@@ -27,22 +26,34 @@ const darkenColor = (hex, amount) => {
 const Connect4Board = () => {
   const [board, setBoard] = useState(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
   const [isPlayerOneTurn, setIsPlayerOneTurn] = useState(true);
-  const [playerOneColor, setPlayerOneColor] = useState('#00ff00'); // Changed to hex
-  const [playerTwoColor, setPlayerTwoColor] = useState('#0000ff'); // Changed to hex
+  const [playerOneColor, setPlayerOneColor] = useState('#00ff00'); 
+  const [playerTwoColor, setPlayerTwoColor] = useState('#0000ff'); 
+  const [fallingDisc, setFallingDisc] = useState({ row: null, col: null });
   const [isResetting, setIsResetting] = useState(false);
+  const [winLength, setWinLength] = useState(4); // Set default win length to 4
+  const [winner, setWinner] = useState(null);
 
   const handleClick = (col) => {
-    if (isResetting) return; // Disable click during reset animation
+    if (isResetting || fallingDisc.row !== null || winner) return;
+
     const row = findLowestEmptyRow(col);
-    if (row === -1) return; // Column is full
+    if (row === -1) return;
 
     const newBoard = board.map((rowArr) => [...rowArr]);
-
-    // Set the color based on the current player
     newBoard[row][col] = isPlayerOneTurn ? playerOneColor : playerTwoColor;
 
+    setFallingDisc({ row, col });
     setBoard(newBoard);
-    setIsPlayerOneTurn(!isPlayerOneTurn);
+
+    setTimeout(() => {
+      setFallingDisc({ row: null, col: null });
+
+      if (checkWin(newBoard, row, col, isPlayerOneTurn ? playerOneColor : playerTwoColor)) {
+        setWinner(isPlayerOneTurn ? 'Player 1' : 'Player 2');
+      } else {
+        setIsPlayerOneTurn(!isPlayerOneTurn);
+      }
+    }, 500);
   };
 
   const findLowestEmptyRow = (col) => {
@@ -54,20 +65,59 @@ const Connect4Board = () => {
     return -1;
   };
 
+  const checkWin = (board, row, col, color) => {
+    return (
+      checkDirection(board, row, col, color, 0, 1) || // Horizontal
+      checkDirection(board, row, col, color, 1, 0) || // Vertical
+      checkDirection(board, row, col, color, 1, 1) || // Diagonal /
+      checkDirection(board, row, col, color, 1, -1)   // Diagonal \
+    );
+  };
+
+  const checkDirection = (board, row, col, color, rowDir, colDir) => {
+    let count = 1;
+
+    count += countConsecutive(board, row, col, color, rowDir, colDir);
+    
+    count += countConsecutive(board, row, col, color, -rowDir, -colDir);
+
+    return count >= winLength;
+  };
+
+  const countConsecutive = (board, row, col, color, rowDir, colDir) => {
+    let count = 0;
+    let r = row + rowDir;
+    let c = col + colDir;
+
+    while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === color) {
+      count++;
+      r += rowDir;
+      c += colDir;
+    }
+
+    return count;
+  };
+
   const resetGame = () => {
     setIsResetting(true);
-    // Delay clearing the board until after the animation (1 second)
     setTimeout(() => {
       setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
       setIsResetting(false);
       setIsPlayerOneTurn(true);
+      setWinner(null);
     }, 2000);
   };
 
   return (
     <div>
       <h1>Connect Four</h1>
-      <p>Click a column and play!</p>
+      <p>Click a column and play! 
+        <br></br><label>Win Condition: Connect </label>
+        <select value={winLength} onChange={(e) => setWinLength(parseInt(e.target.value))}>
+          <option value={3}>3</option>
+          <option value={4}>4</option>
+          <option value={5}>5</option>
+        </select></p>
       <div className="indicator">
         Current Turn:
         <div
@@ -82,7 +132,9 @@ const Connect4Board = () => {
           }}
         />
       </div>
-      
+
+
+
       <div className={`board ${isResetting ? 'resetting' : ''}`}>
         {board.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
@@ -93,18 +145,20 @@ const Connect4Board = () => {
                 onClick={() => handleClick(colIndex)}
               >
                 <div
-                  className={`disc ${cell ? 'drop' : ''}`}
+                  className={`disc ${fallingDisc.row === rowIndex && fallingDisc.col === colIndex ? 'falling' : ''}`}
                   style={{
                     backgroundColor: cell || 'transparent',
-                    animationDuration: `${2.5 + rowIndex * 0.1}s`,
                   }}
                 />
               </div>
             ))}
           </div>
         ))}
-      </div>
+      </div>      
       <div className="feet"></div>
+
+      {winner && <h2>{winner} Wins!</h2>}
+
       <button className="reset-btn" onClick={resetGame}>
         Reset Game
       </button>

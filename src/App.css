@@ -71,25 +71,26 @@ div {
   height: 50px;
   border-radius: 50%;
   position: absolute;
-  top: -200px;
-  animation: dropIn 1s ease-in;
+  top: 0px;
+  animation: none;
 }
 
-.disc.drop {
-  top: -00;
+.disc.falling {
+  animation: dropIn 0.5s ease-in;
 }
 
 @keyframes dropIn {
   0% {
-    top: -500px;
+    top: -300px;
   }
   100% {
     top: 0;
   }
 }
 
+
 .board.resetting .disc {
-  animation: dropOut .4s;
+  animation: dropOut 1s;
 }
 
 @keyframes dropOut {
