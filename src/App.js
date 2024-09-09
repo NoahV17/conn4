@@ -67,6 +67,7 @@ const Connect4Board = () => {
   return (
     <div>
       <h1>Connect Four</h1>
+      <p>Click a column and play!</p>
       <div className="indicator">
         Current Turn:
         <div
@@ -81,8 +82,7 @@ const Connect4Board = () => {
           }}
         />
       </div>
-
-      {/* Game Board */}
+      
       <div className={`board ${isResetting ? 'resetting' : ''}`}>
         {board.map((row, rowIndex) => (
           <div key={rowIndex} className="row">

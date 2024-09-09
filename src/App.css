@@ -18,6 +18,14 @@ h1 {
   align-items: center;
 }
 
+p {
+  font-size: 15px;
+  text-align: center;
+  margin: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
 div {
   justify-content: center;
   align-items: center;
